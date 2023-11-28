@@ -5,10 +5,11 @@ public class DataContext : DbContext {
     public DataContext(DbContextOptions<DataContext> options) : base(options)
     {
         // Database.EnsureDeleted();
-        Database.EnsureCreated();
+        // Database.EnsureCreated();
     }
 
     public DbSet<Poll> Polls => Set<Poll>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

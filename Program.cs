@@ -42,6 +42,7 @@ builder.Services.AddAutoMapper(typeof(Program).Assembly);
 
 // Add custom services
 builder.Services.AddScoped<IPollService, PollService>();
+builder.Services.AddScoped<IUserService, UserService>();
 // builder.Services.AddSingleton<IPollService, PollService>();
 
 var app = builder.Build();

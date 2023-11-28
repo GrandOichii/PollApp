@@ -30,9 +30,6 @@ public class PollService : IPollService
 
     public async Task<IEnumerable<GetPollDto>> GetAll()
     {
-        // foreach (var key in Request.Headers.Keys) {
-        //     System.Console.WriteLine(key);
-        // }
         var list = await _ctx.Polls
             .Include(poll => poll.Options)
             .ToListAsync();
