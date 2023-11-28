@@ -13,11 +13,9 @@ namespace WebApiTutorial.Controllers {
     [Route("api/user")]
     public class UserController : ControllerBase
     {
-        private IConfiguration _configuration;
         private IUserService _userService;
 
-        public UserController(IConfiguration configuration, IUserService userService) {
-            _configuration = configuration;
+        public UserController(IUserService userService) {
             _userService = userService;
         }
         

@@ -24,6 +24,7 @@ public class PollService : IPollService
     {
         var poll = await _ctx.Polls
                                 .Include(poll => poll.Options)
+                                    .ThenInclude(pollOption => pollOption.VotedUsers)
                                 .FirstAsync(poll => poll.ID == id);
         return _mapper.Map<GetPollDto>(poll);
     }
@@ -32,6 +33,7 @@ public class PollService : IPollService
     {
         var list = await _ctx.Polls
             .Include(poll => poll.Options)
+                .ThenInclude(pollOption => pollOption.VotedUsers)
             .ToListAsync();
         return list
             .Select(poll => _mapper.Map<GetPollDto>(poll));
@@ -45,18 +47,24 @@ public class PollService : IPollService
         return await ByID(updatedPoll.ID);
     }
 
-    public async Task<GetPollDto> VoteFor(int pollID, string option)
+    public async Task<GetPollDto> VoteFor(string username, int pollID, string option)
     {
-
-        // TODO replace with adding to a list of voted users
-        var poll = await ByID(pollID);
+        var poll = await _ctx.Polls
+                            .Include(poll => poll.Options)
+                            .FirstAsync(poll => poll.ID == pollID);
         foreach (var o in poll.Options) {
             if (o.Text != option) continue;
 
-            ++o.Votes;
-            break;
+            var me = o.VotedUsers.Find(user => user.Username == username);
+            if (me != null) {
+                throw new Exception(username + " has already voted in poll " + pollID);
+            }
+
+            var newVoter = await _ctx.Users.FirstAsync(user => user.Username == username);
+            o.VotedUsers.Add(newVoter);
+            _ctx.SaveChanges();
+            return await ByID(pollID);
         }
-        _ctx.SaveChanges();
-        return await ByID(pollID);
+        throw new Exception("Can't find poll with ID " + pollID);
     }
 }

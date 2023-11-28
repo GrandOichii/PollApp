@@ -7,7 +7,7 @@ namespace WebApiTutorial.Models {
         public int ID { get; set; }
 
         public string Text { get; set; }
-        public int Votes { get; set; } = 0;
+        public List<User> VotedUsers { get; set; } = new();
     }
 
     public class Poll {

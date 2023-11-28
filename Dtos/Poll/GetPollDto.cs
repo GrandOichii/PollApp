@@ -6,5 +6,5 @@ public class GetPollDto {
     public string Title { get; set; }
     public string Text { get; set; }
 
-    public List<PollOption> Options { get; set; }
+    public List<GetPollOptionDto> Options { get; set; }
 }

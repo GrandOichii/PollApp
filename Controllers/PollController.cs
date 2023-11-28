@@ -53,9 +53,10 @@ namespace WebApiTutorial.Controllers {
             return Ok(await _pollService.Update(updatedPoll));
         }
 
-        [HttpPut("vote/{id}")]
+        [HttpPut("vote/{id}"), Authorize]
         public async Task<IActionResult> VoteFor(int id, [FromBody] string option) {
-            return Ok(await _pollService.VoteFor(id, option));
+            var userID = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)!.Value;
+            return Ok(await _pollService.VoteFor(userID, id, option));
         }
     }
 
