@@ -33,11 +33,6 @@ namespace WebApiTutorial.Controllers {
         public async Task<IActionResult> Login([FromBody] UserDto user) {
             return Ok(await _userService.Login(user));
         }
-
-        [HttpGet("test"), Authorize]
-        public async Task<IActionResult> Test() {
-            return Ok(HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)!.Value);
-        }
     }
 
 }
