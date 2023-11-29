@@ -51,14 +51,17 @@ public class PollService : IPollService
     {
         var poll = await _ctx.Polls
                             .Include(poll => poll.Options)
+                                .ThenInclude(pollOption => pollOption.VotedUsers)
                             .FirstAsync(poll => poll.ID == pollID);
         foreach (var o in poll.Options) {
-            if (o.Text != option) continue;
-
             var me = o.VotedUsers.Find(user => user.Username == username);
             if (me != null) {
                 throw new Exception(username + " has already voted in poll " + pollID);
             }
+        }
+        foreach (var o in poll.Options) {
+            if (o.Text != option) continue;
+            var me = o.VotedUsers.Find(user => user.Username == username);
 
             var newVoter = await _ctx.Users.FirstAsync(user => user.Username == username);
             o.VotedUsers.Add(newVoter);
