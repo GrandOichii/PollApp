@@ -11,6 +11,8 @@ using WebApiTutorial.Services;
 
 namespace WebApiTutorial.Api.Tests;
 
+// Test db functionality here
+
 public class PollServiceTests {
     private IMapper _mapper;
     public PollServiceTests() {
@@ -19,6 +21,9 @@ public class PollServiceTests {
         });
         _mapper = new Mapper(mC);
     }
+
+    private int _pollCount = 10;
+
     private async Task<DataContext> GetDataContext() {
         var options = new DbContextOptionsBuilder<DataContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -26,7 +31,7 @@ public class PollServiceTests {
         var ctx = new DataContext(options);
         ctx.Database.EnsureCreated();
 
-        for (int i = 0; i < 10; i++) {
+        for (int i = 0; i < _pollCount; i++) {
             ctx.Polls.Add(new Poll() {
                 Title = "Poll title " + (i + 1).ToString(),
                 Text = "This is the text of the poll with id " + (i + 1).ToString(),
@@ -43,6 +48,50 @@ public class PollServiceTests {
         await ctx.SaveChangesAsync();
 
         return ctx;
+    }
+
+
+    [Fact]
+    public async void PollService_GetAll_ReturnsSuccess() {
+        // Arrange
+        var ctx = await GetDataContext();
+        var pollService = new PollService(_mapper, ctx);
+
+        // Act
+        var result = await pollService.GetAll();
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Count().Should().Be(_pollCount);
+    }
+
+    [Fact]
+    public async void PollService_ById_ReturnsSuccess() {
+        // Arrange
+        var id = 1;
+        var ctx = await GetDataContext();
+        var pollService = new PollService(_mapper, ctx);
+
+        // Act
+        var result = await pollService.ByID(id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().BeOfType<GetPollDto>();
+    }
+
+    [Fact]
+    public async void PollService_ById_ThrowsException() {
+        // Arrange
+        var id = 0;
+        var ctx = await GetDataContext();
+        var pollService = new PollService(_mapper, ctx);
+
+        // Act
+        var act = () => pollService.ByID(id);
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>();
     }
 
     [Fact]
@@ -62,18 +111,4 @@ public class PollServiceTests {
         result.Count().Should().NotBe(prevCount);
     }
 
-    [Fact]
-    public async void PollService_ById_ReturnsSuccess() {
-        // Arrange
-        var id = 1;
-        var ctx = await GetDataContext();
-        var pollService = new PollService(_mapper, ctx);
-
-        // Act
-        var result = await pollService.ByID(id);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Should().BeOfType<GetPollDto>();
-    }
 }

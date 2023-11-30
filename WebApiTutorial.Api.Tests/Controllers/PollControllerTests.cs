@@ -1,5 +1,6 @@
 using FakeItEasy;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using WebApiTutorial.Controllers;
 using WebApiTutorial.Dtos;
@@ -7,6 +8,8 @@ using WebApiTutorial.Models;
 using WebApiTutorial.Services;
 
 namespace WebApiTutorial.Api.Tests;
+
+// Test controllers here
 
 public class PollControllerTests {
     private PollController _pollController;
@@ -19,20 +22,20 @@ public class PollControllerTests {
     }
 
     [Fact]
-    public void PollController_All_ReturnsSuccess() {
+    public async void PollController_All_ReturnsSuccess() {
         // Arrange
         var polls = A.Fake<IEnumerable<GetPollDto>>();
         A.CallTo(() => _pollService.GetAll()).Returns(polls);
 
         // Act
-        var result = _pollController.All();
+        var result = await _pollController.All();
 
         // Assert
-        result.Should().BeOfType<Task<IActionResult>>();
+        result.Should().BeOfType<OkObjectResult>();
     }
 
     [Fact]
-    public void PollController_ById_ReturnsSuccess() {
+    public async void PollController_ById_ReturnsSuccess() {
         // Arrange
         var id = 1;
         var poll = A.Fake<GetPollDto>();
@@ -40,9 +43,24 @@ public class PollControllerTests {
         A.CallTo(() => _pollService.ByID(id)).Returns(poll);
         // Act
 
-        var result = _pollController.ByID(id);
+        var result = await _pollController.ByID(id);
 
         // Assert
-        result.Should().BeOfType<Task<IActionResult>>();
+        result.Should().BeOfType<OkObjectResult>();
     }
+
+    [Fact]
+    public async void PollController_ById_ReturnsFailed() {
+        // Arrange
+        var id = 2;
+        A.CallTo(() => _pollService.ByID(id)).Throws<Exception>();
+        
+        // Act
+        var result = await _pollController.ByID(id);
+
+        // Assert
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    // TODO add authorized methods
 }

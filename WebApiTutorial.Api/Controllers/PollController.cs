@@ -2,21 +2,6 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-public class Global {
-    public readonly static Global Instance = new();
-    private Global() {}
-
-    public List<Poll> Polls { get; set; } = new List<Poll>() {
-        new() { Title="Poll1", Text="This is the first poll.", Options=new(){
-            new() { Text = "Option1" }, 
-            new() { Text = "Option2" }, 
-        } },
-        new() { Title="Poll2", Text="This is the second poll.", Options=new(){
-            new() { Text = "Photos printed",}, 
-            new() { Text = "Bogos binted" }, 
-        } },
-    };
-}
 namespace WebApiTutorial.Controllers {
 
     // [ApiController, Authorize]
@@ -32,15 +17,18 @@ namespace WebApiTutorial.Controllers {
         }
 
         [HttpGet]
-        public async Task<IActionResult> All() {            
+        public async Task<IActionResult> All() {
             return Ok( await _pollService.GetAll());
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> ByID(int id) {
-            return Ok( await 
-                _pollService.ByID(id)
-            );
+            try {
+                var poll = await _pollService.ByID(id);
+                return Ok(poll);
+            } catch (Exception e) {
+                return BadRequest(e.Message);
+            }
         }
 
         [HttpPost, Authorize]

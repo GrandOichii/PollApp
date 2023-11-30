@@ -25,7 +25,8 @@ public class PollService : IPollService
         var poll = await _ctx.Polls
                                 .Include(poll => poll.Options)
                                     .ThenInclude(pollOption => pollOption.VotedUsers)
-                                .FirstAsync(poll => poll.ID == id);
+                                .FirstOrDefaultAsync(poll => poll.ID == id);
+        if (poll is null) throw new Exception("No poll with id: " + id);
         return _mapper.Map<GetPollDto>(poll);
     }
 
@@ -41,18 +42,20 @@ public class PollService : IPollService
 
     public async Task<GetPollDto> Update(UpdatePollDto updatedPoll)
     {
-        var poll = Global.Instance.Polls.First(poll => poll.ID == updatedPoll.ID);
-        poll.Text = updatedPoll.Text;
-        poll.Title = updatedPoll.Title;
-        return await ByID(updatedPoll.ID);
+        return null;
+        // var poll = Global.Instance.Polls.First(poll => poll.ID == updatedPoll.ID);
+        // poll.Text = updatedPoll.Text;
+        // poll.Title = updatedPoll.Title;
+        // return await ByID(updatedPoll.ID);
     }
 
     public async Task<GetPollDto> VoteFor(string username, int pollID, string option)
     {
+        // TODO fix incorrect exceptions
         var poll = await _ctx.Polls
                             .Include(poll => poll.Options)
                                 .ThenInclude(pollOption => pollOption.VotedUsers)
-                            .FirstAsync(poll => poll.ID == pollID);
+                            .FirstAsync(poll => poll.ID == pollID); // here
         foreach (var o in poll.Options) {
             var me = o.VotedUsers.Find(user => user.Username == username);
             if (me != null) {
@@ -68,6 +71,7 @@ public class PollService : IPollService
             _ctx.SaveChanges();
             return await ByID(pollID);
         }
+        // and here
         throw new Exception("Can't find poll with ID " + pollID);
     }
 }
