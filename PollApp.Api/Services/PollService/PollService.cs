@@ -72,6 +72,6 @@ public class PollService : IPollService
             return await ByID(pollID);
         }
         // and here
-        throw new Exception("Can't find poll with ID " + pollID);
+        throw new Exception("No option " + option + " in poll " + pollID);
     }
 }
