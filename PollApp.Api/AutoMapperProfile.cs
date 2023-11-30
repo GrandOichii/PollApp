@@ -13,5 +13,6 @@ public class AutoMapperProfile : Profile {
         CreateMap<AddPollOptionDto, PollOption>();
 
         CreateMap<User, GetUserDto>();
+        // CreateMap<GetUserDto, User>();
     }
 }

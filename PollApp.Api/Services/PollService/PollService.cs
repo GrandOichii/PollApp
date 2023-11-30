@@ -15,6 +15,8 @@ public class PollService : IPollService
 
     public async Task<IEnumerable<GetPollDto>> Add([FromBody] AddPollDto poll)
     {
+        if (poll.Options.Count == 0) throw new Exception("Can't create poll with no options");
+        
         await _ctx.AddAsync(_mapper.Map<Poll>(poll));
         await _ctx.SaveChangesAsync();
         return await GetAll();
@@ -38,15 +40,6 @@ public class PollService : IPollService
             .ToListAsync();
         return list
             .Select(poll => _mapper.Map<GetPollDto>(poll));
-    }
-
-    public async Task<GetPollDto> Update(UpdatePollDto updatedPoll)
-    {
-        return null;
-        // var poll = Global.Instance.Polls.First(poll => poll.ID == updatedPoll.ID);
-        // poll.Text = updatedPoll.Text;
-        // poll.Title = updatedPoll.Title;
-        // return await ByID(updatedPoll.ID);
     }
 
     public async Task<GetPollDto> VoteFor(string username, int pollID, string option)

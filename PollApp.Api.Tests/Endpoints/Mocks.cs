@@ -1,9 +1,14 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
+using System.Security.Claims;
+using System.Text;
 using AutoMapper;
 using FakeItEasy;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using PollApp.Api;
 using PollApp.Api.Dtos;
 using PollApp.Api.Models;
@@ -14,10 +19,15 @@ class UserServiceMock : IUserService
     public List<User> Users { get; set; } = new();
 
     private IMapper _mapper;
-
+    private IConfiguration _configuration;
 
     public UserServiceMock(IMapper mapper) {
         _mapper = mapper;
+
+        
+        _configuration = new ConfigurationBuilder()
+            .AddJsonFile("appsettings.json")
+            .Build();
 
         for (int i = 0; i < 3; i++) {
             var user = new User() {
@@ -31,7 +41,8 @@ class UserServiceMock : IUserService
 
     public async Task<GetUserDto> ByUsername(string username)
     {
-        throw new NotImplementedException();
+        var user = Users.FirstOrDefault(u => u.Username == username) ?? throw new Exception("");
+        return _mapper.Map<GetUserDto>(user);
     }
 
     public async Task<IEnumerable<GetUserDto>> GetAll()
@@ -45,7 +56,7 @@ class UserServiceMock : IUserService
         if (!BCrypt.Net.BCrypt.Verify(user.Password, target.PasswordHash)) throw new Exception("");
 
         // TODO return actual token?
-        return "jwt token";
+        return CreateToken(target);
     }
 
     public async Task<GetUserDto> Register(UserDto user)
@@ -61,6 +72,23 @@ class UserServiceMock : IUserService
 
         Users.Add(newUser);
         return _mapper.Map<GetUserDto>(Users[0]);
+    }
+
+    private string CreateToken(User user) {
+        var claims = new List<Claim>(){
+            new(ClaimTypes.Name, user.Username),
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetSection("AppSettings:Token").Value!));
+        var cred = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+        var token = new JwtSecurityToken(
+            claims: claims,
+            expires: DateTime.Now.AddDays(1),
+            signingCredentials: cred
+        );
+        var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+        return jwt;
     }
 }
 
@@ -100,8 +128,9 @@ class PollServiceMock : IPollService
     }
     public async Task<IEnumerable<GetPollDto>> Add(AddPollDto poll)
     {
+        if (poll.Options.Count == 0) throw new Exception();
         Polls.Add(_mapper.Map<Poll>(poll));
-        return (IEnumerable<GetPollDto>)Polls;
+        return await GetAll();
     }
 
     public async Task<GetPollDto> ByID(int id)
@@ -115,15 +144,6 @@ class PollServiceMock : IPollService
         return Polls.Select(poll => _mapper.Map<GetPollDto>(poll));
     }
 
-    public async Task<GetPollDto> Update(UpdatePollDto updatedPoll)
-    {
-        var poll = Polls.SingleOrDefault(poll => poll.ID == updatedPoll.ID) ?? throw new Exception();
-        poll.Text = updatedPoll.Text;
-        poll.Title = updatedPoll.Title;
-        // TODO options?
-        return _mapper.Map<GetPollDto>(poll);
-    }
-
     public async Task<GetPollDto> VoteFor(string username, int pollID, string option)
     {
         var poll = Polls.SingleOrDefault(poll => poll.ID == pollID) ?? throw new Exception();
@@ -133,7 +153,10 @@ class PollServiceMock : IPollService
         }
         var op = poll.Options.FirstOrDefault(po => po.Text == option) ?? throw new Exception("");
         var voter = await _userService.ByUsername(username);
-        op.VotedUsers.Add(_mapper.Map<User>(voter));
+        // TODO bad!
+        op.VotedUsers.Add(new User {
+            Username = voter.Username
+        });
         return _mapper.Map<GetPollDto>(poll);
     }
 }

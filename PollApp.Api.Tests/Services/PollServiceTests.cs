@@ -32,7 +32,7 @@ public class PollServiceTests {
         ctx.Database.EnsureCreated();
 
         for (int i = 0; i < _pollCount; i++) {
-            ctx.Polls.Add(new Poll() {
+            ctx.Polls.Add(new Poll {
                 Title = "Poll title " + (i + 1).ToString(),
                 Text = "This is the text of the poll with id " + (i + 1).ToString(),
                 Options = new() {
@@ -45,6 +45,11 @@ public class PollServiceTests {
                 }
             });
         }
+        ctx.Users.Add(new User {
+            Username="user1",
+            PasswordHash="passhash"
+        });
+
         await ctx.SaveChangesAsync();
 
         return ctx;
@@ -97,7 +102,18 @@ public class PollServiceTests {
     [Fact]
     public async void PollService_Add_ReturnsSuccess() {
         // Arrange
-        var poll = A.Fake<AddPollDto>();
+        var poll = new AddPollDto() {
+            Title = "poll title",
+            Text = "poll text",
+            Options = new() {
+                new() {
+                    Text = "Option 1"
+                },
+                new() {
+                    Text = "Option 2"
+                }
+            }
+        };
         var ctx = await GetDataContext();
 
         var pollService = new PollService(_mapper, ctx);
@@ -111,4 +127,71 @@ public class PollServiceTests {
         result.Count().Should().NotBe(prevCount);
     }
 
+    [Fact]
+    public async void PollService_Add_ThrowsException() {
+        // Arrange
+        var poll = new AddPollDto() {
+            Title = "poll title",
+            Text = "poll text",
+            Options = new() {}
+        };
+        var ctx = await GetDataContext();
+
+        var pollService = new PollService(_mapper, ctx);
+
+        // Act
+        var act = () => pollService.Add(poll);
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>();
+    }
+
+    [Fact]
+    public async void PollService_VoteFor_ReturnsSuccess() {
+        // Arrange
+        var poll = A.Fake<AddPollDto>();
+        var ctx = await GetDataContext();
+
+        var pollService = new PollService(_mapper, ctx);
+        var prevVoteCount = (await ctx.Polls.FirstAsync()).Options[0].VotedUsers.Count;
+
+        // Act
+        var result = await pollService.VoteFor("user1", 1, "Option 1");
+
+        // Assert
+        result.Options[0].VotedUsers.Count.Should().BeGreaterThan(prevVoteCount);
+    }
+
+    [Fact]
+    public async void PollService_VoteFor_IncorrectOption() {
+        // Arrange
+        var poll = A.Fake<AddPollDto>();
+        var ctx = await GetDataContext();
+
+        var pollService = new PollService(_mapper, ctx);
+        var prevVoteCount = (await ctx.Polls.FirstAsync()).Options[0].VotedUsers.Count;
+
+        // Act
+        var act = () => pollService.VoteFor("user1", 1, "non-existant option");
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>();
+    }
+
+    [Theory]
+    [InlineData("Option 1"), InlineData("Option 2")]
+    public async void PollService_VoteFor_AlreadyVoted(string option) {
+        // Arrange
+        var poll = A.Fake<AddPollDto>();
+        var ctx = await GetDataContext();
+
+        var pollService = new PollService(_mapper, ctx);
+
+        // Act
+        await pollService.VoteFor("user1", 1, "Option 1");
+        var act = () => pollService.VoteFor("user1", 1, option);
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>();
+    }
 }

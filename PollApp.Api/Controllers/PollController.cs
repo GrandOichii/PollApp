@@ -2,7 +2,12 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
+
 namespace PollApp.Api.Controllers {
+    public class Vote {
+        public int PollID { get; set; }
+        public string Option { get; set; } = string.Empty;
+    }
 
     // [ApiController, Authorize]
     [ApiController]
@@ -33,18 +38,22 @@ namespace PollApp.Api.Controllers {
 
         [HttpPost, Authorize]
         public async Task<IActionResult> AddPoll([FromBody] AddPollDto poll) {
-            return Ok( await _pollService.Add(poll));
+            try {
+                var polls = await _pollService.Add(poll);
+                return Ok( polls );
+            } catch (Exception e) {
+                return BadRequest(e.Message);
+            }
         }
 
-        [HttpPut, Authorize]
-        public async Task<IActionResult> UpdatePoll([FromBody] UpdatePollDto updatedPoll) {
-            return Ok(await _pollService.Update(updatedPoll));
-        }
-
-        [HttpPut("vote/{id}"), Authorize]
-        public async Task<IActionResult> VoteFor(int id, [FromBody] string option) {
-            var userID = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)!.Value;
-            return Ok(await _pollService.VoteFor(userID, id, option));
+        [HttpPut("vote"), Authorize]
+        public async Task<IActionResult> VoteFor([FromBody] Vote vote) {
+            try {
+                var userID = HttpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name)!.Value;
+                return Ok(await _pollService.VoteFor(userID, vote.PollID, vote.Option));
+            } catch (Exception e) {
+                return BadRequest(e.Message);   
+            }
         }
     }
 

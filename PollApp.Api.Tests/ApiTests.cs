@@ -24,6 +24,6 @@ public class ApiTests
         var response = await client.GetAsync(url);
 
         // Assert
-        response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
+        response.Should().BeSuccessful();
     }
 }

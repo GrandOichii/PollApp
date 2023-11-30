@@ -54,7 +54,8 @@ public class UsersEndpointTests
         }));
 
         // Assert
-        result.Should().HaveStatusCode(System.Net.HttpStatusCode.OK);
+        result.Should().BeSuccessful();
+
     }
 
     [Fact]
@@ -84,7 +85,8 @@ public class UsersEndpointTests
         }));
 
         // Assert
-        result.Should().HaveStatusCode(System.Net.HttpStatusCode.OK);
+        result.Should().BeSuccessful();
+
     }
 
     [Fact]
