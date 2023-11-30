@@ -54,11 +54,17 @@ public class UserService : IUserService
 
     public async Task<GetUserDto> Register(UserDto user)
     {
+        var users = await _ctx.Users.ToListAsync();
+        var taken = users.FirstOrDefault(u => u.Username == user.Username) is not null;
+        if (taken)
+            throw new Exception(user.Username + " is already taken");
         string passHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
         var newUser = new User() {
             Username = user.Username,
             PasswordHash = passHash    
         };
+
+        // TODO check password
 
         await _ctx.Users.AddAsync(newUser);
         await _ctx.SaveChangesAsync();
@@ -66,7 +72,7 @@ public class UserService : IUserService
     }
 
     private string CreateToken(User user) {
-        List<Claim> claims = new List<Claim>{
+        var claims = new List<Claim>(){
             new(ClaimTypes.Name, user.Username),
         };
 

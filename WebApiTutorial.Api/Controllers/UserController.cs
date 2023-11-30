@@ -10,7 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 namespace WebApiTutorial.Controllers {
 
     [ApiController]
-    [Route("api/user")]
+    [Route("api/Users")]
     public class UserController : ControllerBase
     {
         private IUserService _userService;
@@ -19,19 +19,29 @@ namespace WebApiTutorial.Controllers {
             _userService = userService;
         }
         
-        [HttpGet("all")]
+        [HttpGet]
         public async Task<IActionResult> GetAll() {
             return Ok(await _userService.GetAll());
         }
 
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] UserDto user) {
-            return Ok(await _userService.Register(user)); 
+            try {
+                var u = await _userService.Register(user); 
+                return Ok(u); 
+            } catch (Exception e) {
+                return Conflict(e.Message);
+            }
         }
 
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserDto user) {
-            return Ok(await _userService.Login(user));
+            try {
+                var result = await _userService.Login(user);
+                return Ok(result);
+            } catch (Exception e) {
+                return Unauthorized(e.Message);
+            }
         }
     }
 

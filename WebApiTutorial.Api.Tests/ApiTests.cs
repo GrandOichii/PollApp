@@ -14,7 +14,7 @@ public class ApiTests
     }
 
     [Theory]
-    [InlineData("/api/Polls")]
+    [InlineData("/api/Polls"), InlineData("/api/Users")]
     public async Task Get_EndpointsReturnSuccessAndCorrectContentType(string url)
     {
         // Arrange

@@ -11,22 +11,31 @@ using WebApiTutorial.Services;
 
 class UserServiceMock : IUserService
 {
-    public Task<GetUserDto> ByUsername(string username)
+    public List<User> Users { get; set; } = new();
+
+    private IMapper _mapper;
+
+
+    public UserServiceMock(IMapper mapper) {
+        _mapper = mapper;
+    }
+
+    public async Task<GetUserDto> ByUsername(string username)
     {
         throw new NotImplementedException();
     }
 
-    public Task<IEnumerable<GetUserDto>> GetAll()
+    public async Task<IEnumerable<GetUserDto>> GetAll()
+    {
+        return Users.Select(user => _mapper.Map<GetUserDto>(user));
+    }
+
+    public async Task<string> Login(UserDto user)
     {
         throw new NotImplementedException();
     }
 
-    public Task<string> Login(UserDto user)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<GetUserDto> Register(UserDto user)
+    public async Task<GetUserDto> Register(UserDto user)
     {
         throw new NotImplementedException();
     }
@@ -39,11 +48,12 @@ class PollServiceMock : IPollService
 
     private IUserService _userService;
 
-    public PollServiceMock(IUserService userService) {
-        var mC = new MapperConfiguration(cfg => {
-            cfg.AddProfile(new AutoMapperProfile());
-        });
-        _mapper = new Mapper(mC);
+    public PollServiceMock(IMapper mapper, IUserService userService) {
+        // var mC = new MapperConfiguration(cfg => {
+        //     cfg.AddProfile(new AutoMapperProfile());
+        // });
+        // _mapper = new Mapper(mC);
+        _mapper = mapper;
 
         _userService = userService;
 
