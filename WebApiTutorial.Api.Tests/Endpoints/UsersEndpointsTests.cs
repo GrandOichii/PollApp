@@ -42,14 +42,63 @@ public class UsersEndpointTests
         users.Should().NotBeNull();
     }
 
-    // [Fact]
-    // public async Task Users_Register_ReturnsSuccess() {
-    //     // Arrange
-    //     var client = _factory.CreateClient();
+    [Fact]
+    public async Task Users_Register_ReturnsSuccess() {
+        // Arrange
+        var client = _factory.CreateClient();
 
-    //     // Act
-    //     var 
+        // Act
+        var result = await client.PostAsync("/api/Users/register", JsonContent.Create(new UserDto {
+            Username = "new user",
+            Password = "new password"
+        }));
 
-    //     // Assert
-    // }
+        // Assert
+        result.Should().HaveStatusCode(System.Net.HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task Users_Register_ReturnsFailed() {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        // Act
+        var result = await client.PostAsync("/api/Users/register", JsonContent.Create(new UserDto {
+            Username = "User1",
+            Password = "password"
+        }));
+
+        // Assert
+        result.Should().HaveClientError();
+    }
+
+    [Fact]
+    public async Task Users_Login_ReturnsSuccess() {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        // Act
+        var result = await client.PostAsync("/api/Users/login", JsonContent.Create(new UserDto {
+            Username = "User1",
+            Password = "Pass1"
+        }));
+
+        // Assert
+        result.Should().HaveStatusCode(System.Net.HttpStatusCode.OK);
+    }
+
+    [Fact]
+    public async Task User_Login_ReturnsFailed() {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        // Act
+        var result = await client.PostAsync("/api/Users/login", JsonContent.Create(new UserDto {
+            Username = "non existant user",
+            Password = "password"
+        }));
+
+        // Assert
+        result.Should().HaveClientError();
+    }
 }

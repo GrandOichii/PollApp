@@ -18,6 +18,15 @@ class UserServiceMock : IUserService
 
     public UserServiceMock(IMapper mapper) {
         _mapper = mapper;
+
+        for (int i = 0; i < 3; i++) {
+            var user = new User() {
+                Username = "User" + (i+1),
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Pass" + (i+1))
+            };
+
+            Users.Add(user);
+        }
     }
 
     public async Task<GetUserDto> ByUsername(string username)
@@ -32,12 +41,26 @@ class UserServiceMock : IUserService
 
     public async Task<string> Login(UserDto user)
     {
-        throw new NotImplementedException();
+        var target = Users.FirstOrDefault(u => u.Username == user.Username) ?? throw new Exception("");
+        if (!BCrypt.Net.BCrypt.Verify(user.Password, target.PasswordHash)) throw new Exception("");
+
+        // TODO return actual token?
+        return "jwt token";
     }
 
     public async Task<GetUserDto> Register(UserDto user)
     {
-        throw new NotImplementedException();
+        var taken = Users.FirstOrDefault(u => u.Username == user.Username);
+        if (taken != null) throw new Exception();
+
+        string passHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
+        var newUser = new User {
+            Username = user.Username,
+            PasswordHash = passHash
+        };
+
+        Users.Add(newUser);
+        return _mapper.Map<GetUserDto>(Users[0]);
     }
 }
 
