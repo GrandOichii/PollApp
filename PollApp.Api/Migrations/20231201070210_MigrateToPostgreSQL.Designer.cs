@@ -2,9 +2,9 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using PollApp.Api.Data;
 
 #nullable disable
@@ -12,8 +12,8 @@ using PollApp.Api.Data;
 namespace PollApp.Api.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20231128181530_AddUser2")]
-    partial class AddUser2
+    [Migration("20231201070210_MigrateToPostgreSQL")]
+    partial class MigrateToPostgreSQL
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,25 +21,25 @@ namespace PollApp.Api.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("ProductVersion", "7.0.0")
-                .HasAnnotation("Relational:MaxIdentifierLength", 128);
+                .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+            NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("PollApp.Api.Models.Poll", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("ID");
 
@@ -50,19 +50,16 @@ namespace PollApp.Api.Migrations
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ID"));
 
                     b.Property<int?>("PollID")
-                        .HasColumnType("int");
+                        .HasColumnType("integer");
 
                     b.Property<string>("Text")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Votes")
-                        .HasColumnType("int");
+                        .HasColumnType("text");
 
                     b.HasKey("ID");
 
@@ -74,15 +71,30 @@ namespace PollApp.Api.Migrations
             modelBuilder.Entity("PollApp.Api.Models.User", b =>
                 {
                     b.Property<string>("Username")
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("text");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.HasKey("Username");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("PollOptionUser", b =>
+                {
+                    b.Property<int>("VotedForID")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("VotedUsersUsername")
+                        .HasColumnType("text");
+
+                    b.HasKey("VotedForID", "VotedUsersUsername");
+
+                    b.HasIndex("VotedUsersUsername");
+
+                    b.ToTable("PollOptionUser");
                 });
 
             modelBuilder.Entity("PollApp.Api.Models.PollOption", b =>
@@ -90,6 +102,21 @@ namespace PollApp.Api.Migrations
                     b.HasOne("PollApp.Api.Models.Poll", null)
                         .WithMany("Options")
                         .HasForeignKey("PollID");
+                });
+
+            modelBuilder.Entity("PollOptionUser", b =>
+                {
+                    b.HasOne("PollApp.Api.Models.PollOption", null)
+                        .WithMany()
+                        .HasForeignKey("VotedForID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("PollApp.Api.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("VotedUsersUsername")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("PollApp.Api.Models.Poll", b =>

@@ -26,7 +26,8 @@ public class Program {
         // Add services to the container.
 
         builder.Services.AddDbContext<DataContext>(options => 
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+            options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQLConnection"))
+            // options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
         );
 
         builder.Services.AddControllers();
@@ -69,10 +70,10 @@ public class Program {
 
         app.UseHttpsRedirection();
 
-        app.Use((ctx, next) => {
-            ctx.Response.Headers["Access-Control-Allow-Origin"] = "http://localhost:5173";
-            return next();
-        });
+        // app.Use((ctx, next) => {
+        //     ctx.Response.Headers["Access-Control-Allow-Origin"] = "http://localhost:5173";
+        //     return next();
+        // });
 
         // app.UseCors(myAllowSpecificOrigins);
 
