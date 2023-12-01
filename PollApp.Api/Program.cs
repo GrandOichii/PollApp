@@ -25,8 +25,9 @@ public class Program {
 
         // Add services to the container.
 
-        builder.Services.AddDbContext<DataContext>(options => 
-            options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQLConnection"))
+        builder.Services.AddDbContext<DataContext>(options => {
+            options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSQLConnection"));
+        }
             // options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
         );
 
@@ -62,11 +63,11 @@ public class Program {
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
-        if (app.Environment.IsDevelopment())
-        {
+        // if (app.Environment.IsDevelopment())
+        // {
             app.UseSwagger();
             app.UseSwaggerUI();
-        }
+        // }
 
         app.UseHttpsRedirection();
 
