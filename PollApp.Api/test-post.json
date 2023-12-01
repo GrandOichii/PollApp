@@ -1,9 +1,0 @@
-{
-    "title": "DB Post poll",
-    "text": "A poll created using the POST method and stored in the DB",
-    "options": [
-      {
-        "text": "DB Post Option1"
-      }, {"text":"DB Post option2"}
-    ]
-  }
