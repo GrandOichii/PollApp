@@ -154,12 +154,28 @@ public class UserServiceTests {
     }
 
     [Fact]
-    public async void UserService_Login_ThrowsException() {
+    public async void UserService_Login_NonexistantUser() {
         // Arrange
         var ctx = await GetDataContext();
         var userService = new UserService(_configuration, _mapper, ctx);
         var user = new UserDto() {
-            Username = "non existant user",
+            Username = "non-existant user",
+            Password =  "Pass1"
+        };
+
+        // Act
+        var act = () => userService.Login(user);
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>();
+    }
+    [Fact]
+    public async void UserService_Login_IncorrectPassword() {
+        // Arrange
+        var ctx = await GetDataContext();
+        var userService = new UserService(_configuration, _mapper, ctx);
+        var user = new UserDto() {
+            Username = "User1",
             Password =  "incorrect password"
         };
 

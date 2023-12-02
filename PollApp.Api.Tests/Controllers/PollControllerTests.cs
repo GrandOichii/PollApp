@@ -87,7 +87,7 @@ public class PollControllerTests {
         // Assert
         result.Should().BeOfType<OkObjectResult>();
     }
-    
+
     [Fact]
     public async void PollController_AddPoll_ReturnsFailed() {
         // Arrange
@@ -120,6 +120,9 @@ public class PollControllerTests {
         // Assert
         result.Should().BeOfType<OkObjectResult>();
     }
+
+    // [Fact]
+    // public async void PollController
 
     [Fact]
     public async void PollController_VoteFor_ReturnsFailed() {

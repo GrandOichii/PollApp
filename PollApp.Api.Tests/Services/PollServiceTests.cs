@@ -149,7 +149,6 @@ public class PollServiceTests {
     [Fact]
     public async void PollService_VoteFor_ReturnsSuccess() {
         // Arrange
-        var poll = A.Fake<AddPollDto>();
         var ctx = await GetDataContext();
 
         var pollService = new PollService(_mapper, ctx);
@@ -160,6 +159,22 @@ public class PollServiceTests {
 
         // Assert
         result.Options[0].VotedUsers.Count.Should().BeGreaterThan(prevVoteCount);
+    }
+
+    [Fact]
+    public async void PollService_VoteFor_NonexistantUser() {
+        // Arrange
+        var poll = A.Fake<AddPollDto>();
+        var ctx = await GetDataContext();
+
+        var pollService = new PollService(_mapper, ctx);
+        var prevVoteCount = (await ctx.Polls.FirstAsync()).Options[0].VotedUsers.Count;
+
+        // Act
+        var act = () => pollService.VoteFor("non-existant user", 1, "Option1");
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>();
     }
 
     [Fact]

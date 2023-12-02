@@ -11,6 +11,7 @@ using PollApp.Api.Models;
 using PollApp.Api.Services;
 using PollApp.Api.Controllers;
 using Xunit.Abstractions;
+using Microsoft.AspNetCore.Identity;
 
 namespace PollApp.Api.Api.Tests;
 
@@ -134,6 +135,30 @@ public class PollsEndpointTests
     }
 
     [Fact]
+    public async Task Polls_AddPoll_Anauthorized() {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        var newPoll = new AddPollDto {
+            Title = "new poll",
+            Text = "new poll text",
+            Options = new() {
+                new() {
+                    Text = "new poll option 1"
+                },
+                new() {
+                    Text = "new poll option 2"
+                },
+            }
+        };
+        // Act
+        var result = await client.PostAsync("/api/Polls", JsonContent.Create(newPoll));
+
+        // Assert
+        result.Should().HaveClientError();
+    }
+
+    [Fact]
     public async Task Polls_AddPoll_ReturnsFailed() {
         // TODO change to admin only
 
@@ -179,6 +204,24 @@ public class PollsEndpointTests
         var poll = await result.Content.ReadFromJsonAsync<GetPollDto>();
 
         poll!.Options[0].VotedUsers.Count.Should().BeGreaterThan(prevOptionVotes);
+    }
+
+    [Fact]
+    public async Task Polls_Vote_Unauthorized() {
+        // Arrange
+        var client = _factory.CreateClient();
+
+        var pollID = 1;
+        var option = "Option1";
+
+        // Act
+        var result = await client.PutAsync("/api/Polls/vote/", JsonContent.Create(new Vote {
+            PollID = pollID,
+            Option = option
+        }));
+
+        // Assert
+        result.Should().HaveClientError();
     }
 
     [Fact]
