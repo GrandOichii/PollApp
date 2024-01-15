@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 
@@ -23,7 +24,7 @@ namespace PollApp.Api.Controllers {
 
         [HttpGet]
         public async Task<IActionResult> All() {
-            return Ok( await _pollService.GetAll());
+            return Ok( await _pollService.GetAll() );
         }
 
         [HttpGet("{id}")]
